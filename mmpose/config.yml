@@ -1,0 +1,26 @@
+#
+# configrations for mmpose/test.py
+# download checkpoint before use it.
+#
+# mim download mmpose --config td-hm_hrnet-w48_8xb32-210e_coco-256x192 --dest models
+#
+
+#config: models/td-hm_hrnet-w48_8xb32-210e_coco-256x192.py
+#checkpoint: models/td-hm_hrnet-w48_8xb32-210e_coco-256x192-0e67c616_20220913.pth
+#config: models/yoloxpose_l_8xb32-300e_coco-640.py
+#checkpoint: models/yoloxpose_l_8xb32-300e_coco-640-de0f8dee_20230829.pth
+#config: models/yoloxpose_l_8xb32-300e_coco-640.py
+#checkpoint: models/yoloxpose_l_8xb32-300e_coco-640-de0f8dee_20230829.pth
+config: models/rtmo-l_16xb16-600e_coco-640x640.py
+checkpoint: models/rtmo-l_16xb16-600e_coco-640x640-516a421f_20231211.pth
+
+device: cuda:0
+
+# Visualize options
+
+show-kpt-idx: false
+skeleton-style: mmpose
+kpt-thr: 0.3
+radius: 4
+thickness: 2
+alpha: 0.8
