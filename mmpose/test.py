@@ -88,7 +88,12 @@ def inference_video(config, model, visualizer, inputfile, outputfile):
             skeleton_style=config.get("skeleton-style"),
             show=False)
 
-        out.write(cv2.cvtColor(vis_frame, cv2.COLOR_RGB2BGR))
+        frame = cv2.cvtColor(vis_frame, cv2.COLOR_RGB2BGR)
+        out.write(frame)
+        cv2.imshow(outputfile, frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
     cap.release()
     out.release()
 

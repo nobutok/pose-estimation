@@ -9,12 +9,14 @@
 #checkpoint: models/td-hm_hrnet-w48_8xb32-210e_coco-256x192-0e67c616_20220913.pth
 #config: models/yoloxpose_l_8xb32-300e_coco-640.py
 #checkpoint: models/yoloxpose_l_8xb32-300e_coco-640-de0f8dee_20230829.pth
-#config: models/yoloxpose_l_8xb32-300e_coco-640.py
-#checkpoint: models/yoloxpose_l_8xb32-300e_coco-640-de0f8dee_20230829.pth
-config: models/rtmo-l_16xb16-600e_coco-640x640.py
-checkpoint: models/rtmo-l_16xb16-600e_coco-640x640-516a421f_20231211.pth
+#config: models/rtmo-l_16xb16-600e_coco-640x640.py
+#checkpoint: models/rtmo-l_16xb16-600e_coco-640x640-516a421f_20231211.pth
+#config: models/rtmpose-l_8xb256-420e_aic-coco-384x288.py
+#checkpoint: models/rtmpose-l_simcc-aic-coco_pt-aic-coco_420e-384x288-97d6cb0f_20230228.pth
+config: models/rtmpose-x_8xb256-700e_body8-halpe26-384x288.py
+checkpoint: models/rtmpose-x_simcc-body7_pt-body7-halpe26_700e-384x288-7fb6e239_20230606.pth
 
-device: cuda:0
+device: cuda:1
 
 # Visualize options
 
