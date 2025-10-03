@@ -36,7 +36,7 @@ if args.input.suffix.lower() in [".jpg", ".jpeg", ".png"]:
     start = time.time()
     outputs = predictor(img)
     end = time.time()
-    print(f"Time: {end - start} sec")
+    print(f"Time: {end - start:.6f} sec")
 
     v = Visualizer(img[:, :, ::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
     out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
@@ -51,6 +51,7 @@ elif args.input.suffix.lower() in [".mp4", ".avi", ".mov"]:
     metadata = MetadataCatalog.get(cfg.DATASETS.TRAIN[0])
     vis = VideoVisualizer(metadata, ColorMode.IMAGE)
 
+    times = []
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -59,7 +60,9 @@ elif args.input.suffix.lower() in [".mp4", ".avi", ".mov"]:
         start = time.time()
         predictions = predictor(frame)
         end = time.time()
-        print(f"Time: {end - start} sec")
+
+        times.append(end - start)
+        print(f"Time: {end - start:.6f} sec")
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         vis_frame = vis.draw_instance_predictions(frame, predictions["instances"].to("cpu"))
@@ -72,3 +75,5 @@ elif args.input.suffix.lower() in [".mp4", ".avi", ".mov"]:
 
     cap.release()
     out.release()
+
+    print(f"Average Time: {np.mean(times):.6f} sec")
