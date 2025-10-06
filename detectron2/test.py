@@ -15,9 +15,12 @@ from pathlib import Path
 import argparse
 import time
 
+BLUR_SIZE = (32, 32)
+
 parser = argparse.ArgumentParser()
 parser.add_argument("input", type=Path, help="Path to the input image")
 parser.add_argument("output", type=Path, help="Path to save the output image")
+parser.add_argument("--no-blur", action="store_true", help="Disable blurring effect")
 args = parser.parse_args()
 
 cfg = get_cfg()
@@ -38,10 +41,14 @@ if args.input.suffix.lower() in [".jpg", ".jpeg", ".png"]:
     end = time.time()
     print(f"Time: {end - start:.6f} sec")
 
+    if not args.no_blur:
+        img = cv2.blur(img, BLUR_SIZE)
     v = Visualizer(img[:, :, ::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
     out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
     cv2.imwrite(str(args.output), out.get_image()[:, :, ::-1])
+
 elif args.input.suffix.lower() in [".mp4", ".avi", ".mov"]:
+
     cap = cv2.VideoCapture(str(args.input))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -65,6 +72,8 @@ elif args.input.suffix.lower() in [".mp4", ".avi", ".mov"]:
         print(f"Time: {end - start:.6f} sec")
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        if not args.no_blur:
+            frame = cv2.blur(frame, BLUR_SIZE)
         vis_frame = vis.draw_instance_predictions(frame, predictions["instances"].to("cpu"))
         frame = cv2.cvtColor(vis_frame.get_image(), cv2.COLOR_RGB2BGR)
         out.write(frame)

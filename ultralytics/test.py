@@ -4,22 +4,32 @@ from pathlib import Path
 import time
 import cv2
 
+BLUR_SIZE = (32, 32)
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default='yolo11s-pose.pt', help='Path to the model file')
 parser.add_argument('input', type=Path, help='Path to the input image or video file')
 parser.add_argument('output', type=Path, help='Path to save the output results')
+parser.add_argument('--no-blur', action='store_true', help='Disable blurring effect')
 args = parser.parse_args()
 
 model = YOLO(args.model)
 
 if args.input.suffix.lower() in [".jpg", ".jpeg", "png"]:
 
-    results = model.predict(str(args.input), verbose=False)
+    img = cv2.imread(str(args.input))
+    if args.no_blur:
+        blurred = img
+    else:
+        blurred = cv2.blur(img, BLUR_SIZE)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    results = model.predict(img, verbose=False)
     start = time.time()
-    results = model.predict(str(args.input), verbose=False)
+    result = model.predict(img, verbose=False)[0]
     end = time.time()
     print(f"Inference time: {end - start:.6f} seconds")
-    results[0].save(args.output)
+    img = result.plot(img=blurred)
+    cv2.imwrite(str(args.output), img)
 
 elif args.input.suffix.lower() in [".mp4", ".mov", ".avi", ".mkv"]:
 
@@ -30,12 +40,23 @@ elif args.input.suffix.lower() in [".mp4", ".mov", ".avi", ".mkv"]:
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(str(args.output), fourcc, fps, (width, height))
 
-    results = model.predict(str(args.input), stream=True, verbose=False)
     times = []
-    for result in results:
-        pt = sum([t for t in result.speed.values()]) / 1000  # sum of preprocess, inference, postprocess times in ms
-        times.append(pt)
-        img = result.plot()
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        start = time.time()
+        result = model.predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), verbose=False)[0]
+        end = time.time()
+        print(f"Inference time: {end - start:.6f} seconds")
+        times.append(end - start)
+
+        if args.no_blur:
+            blurred = frame
+        else:
+            blurred = cv2.blur(frame, BLUR_SIZE)
+        img = result.plot(img=blurred)
         cv2.imshow(str(args.output), img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
