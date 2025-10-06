@@ -14,8 +14,8 @@ import time
 
 def parse_args():
     parser = ArgumentParser()
-    parser.add_argument('img', help='Image file')
-    parser.add_argument('--out-file', default=None, help='Path to output file')
+    parser.add_argument('input', help='Image file')
+    parser.add_argument('output', help='Path to output file')
     parser.add_argument(
         '--show',
         action='store_true',
@@ -30,7 +30,7 @@ def inference_image(config, model, visualizer, inputfile, outputfile):
     start = time.time()
     batch_results = inference_topdown(model, inputfile)
     end = time.time()
-    print(f'Inference time: {end - start:.4f} seconds')
+    print(f'Inference time: {end - start:.6f} seconds')
     results = merge_data_samples(batch_results)
 
     # show the results
@@ -72,7 +72,7 @@ def inference_video(config, model, visualizer, inputfile, outputfile):
         start = time.time()
         predictions = inference_topdown(model, img)
         end = time.time()
-        print(f'Inference time: {end - start:.4f} seconds')
+        print(f'Inference time: {end - start:.6f} seconds')
         times.append(end - start)
         results = merge_data_samples(predictions)
 
@@ -96,8 +96,9 @@ def inference_video(config, model, visualizer, inputfile, outputfile):
 
     cap.release()
     out.release()
+    cv2.destroyAllWindows()
 
-    print(f'Average inference time: {sum(times[1:])/len(times[1:]):.4f} seconds')
+    print(f'Average inference time: {sum(times[1:])/len(times[1:]):.6f} seconds')
 
 def main():
     with open('config.yml') as f:
@@ -121,10 +122,10 @@ def main():
     visualizer.set_dataset_meta(
         model.dataset_meta, skeleton_style=config.get("skeleton_style"))
 
-    if args.img.endswith((".jpg", ".jpeg", ".png", ".bmp")):
-        inference_image(config, model, visualizer, args.img, args.out_file)
-    elif args.img.endswith((".mp4", ".mov", ".avi", ".mkv")):
-        inference_video(config, model, visualizer, args.img, args.out_file)
+    if args.input.endswith((".jpg", ".jpeg", ".png", ".bmp")):
+        inference_image(config, model, visualizer, args.input, args.output)
+    elif args.input.endswith((".mp4", ".mov", ".avi", ".mkv")):
+        inference_video(config, model, visualizer, args.input, args.output)
 
 if __name__ == '__main__':
     main()
