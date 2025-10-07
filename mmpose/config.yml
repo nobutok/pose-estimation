@@ -16,8 +16,6 @@
 config: models/rtmpose-x_8xb256-700e_body8-halpe26-384x288.py
 checkpoint: models/rtmpose-x_simcc-body7_pt-body7-halpe26_700e-384x288-7fb6e239_20230606.pth
 
-device: cuda
-
 # Visualize options
 
 show-kpt-idx: false

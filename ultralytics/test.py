@@ -3,8 +3,10 @@ import argparse
 from pathlib import Path
 import time
 import cv2
+import os
 
 BLUR_SIZE = (32, 32)
+DEVICE = os.environ.get("TEST_DEVICE", "cuda:0")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default='yolo11s-pose.pt', help='Path to the model file')
@@ -23,9 +25,9 @@ if args.input.suffix.lower() in [".jpg", ".jpeg", "png"]:
     else:
         blurred = cv2.blur(img, BLUR_SIZE)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    results = model.predict(img, verbose=False)
+    results = model.predict(img, verbose=False, device=DEVICE)
     start = time.time()
-    result = model.predict(img, verbose=False)[0]
+    result = model.predict(img, verbose=False, device=DEVICE)[0]
     end = time.time()
     print(f"Inference time: {end - start:.6f} seconds")
     img = result.plot(img=blurred)
@@ -47,7 +49,7 @@ elif args.input.suffix.lower() in [".mp4", ".mov", ".avi", ".mkv"]:
             break
 
         start = time.time()
-        result = model.predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), verbose=False)[0]
+        result = model.predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), verbose=False, device=DEVICE)[0]
         end = time.time()
         print(f"Inference time: {end - start:.6f} seconds")
         times.append(end - start)

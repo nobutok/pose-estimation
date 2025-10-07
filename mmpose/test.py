@@ -2,6 +2,7 @@
 import logging
 from argparse import ArgumentParser
 import cv2
+import os
 
 from mmcv.image import imread
 from mmengine.logging import print_log
@@ -13,6 +14,7 @@ import yaml
 import time
 
 BLUR_SIZE = (32, 32)
+DEVICE = os.environ.get("TEST_DEVICE", "cuda:0")
 
 parser = ArgumentParser()
 parser.add_argument('input', help='Image file')
@@ -109,7 +111,7 @@ def main():
     model = init_model(
         config.get("config"),
         config.get("checkpoint"),
-        device=config.get("device"))
+        device=DEVICE)
 
     # init visualizer
     model.cfg.visualizer.radius = config.get("radius")
