@@ -4,6 +4,7 @@ from pathlib import Path
 import time
 import cv2
 import os
+from tqdm import tqdm
 
 BLUR_SIZE = (32, 32)
 DEVICE = os.environ.get("TEST_DEVICE", "cuda:0")
@@ -39,19 +40,22 @@ elif args.input.suffix.lower() in [".mp4", ".mov", ".avi", ".mkv"]:
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(str(args.output), fourcc, fps, (width, height))
 
+    progress = tqdm(total=total_frames)
     times = []
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
 
+        progress.update(1)
         start = time.time()
         result = model.predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), verbose=False, device=DEVICE)[0]
         end = time.time()
-        print(f"Inference time: {end - start:.6f} seconds")
+        #print(f"Inference time: {end - start:.6f} seconds")
         times.append(end - start)
 
         if args.no_blur:

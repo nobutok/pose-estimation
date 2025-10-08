@@ -12,6 +12,7 @@ from mmpose.registry import VISUALIZERS
 from mmpose.structures import merge_data_samples
 import yaml
 import time
+from tqdm import tqdm
 
 BLUR_SIZE = (32, 32)
 DEVICE = os.environ.get("TEST_DEVICE", "cuda:0")
@@ -60,20 +61,23 @@ def inference_video(config, model, visualizer):
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     out = cv2.VideoWriter(args.output, fourcc, fps, (width, height))
 
+    progress = tqdm(total=total_frames)
     times = []
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
 
+        progress.update(1)
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         start = time.time()
         predictions = inference_topdown(model, img)
         end = time.time()
-        print(f'Inference time: {end - start:.6f} seconds')
+        #print(f'Inference time: {end - start:.6f} seconds')
         times.append(end - start)
         results = merge_data_samples(predictions)
 
