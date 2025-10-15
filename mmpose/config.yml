@@ -13,14 +13,16 @@
 #checkpoint: models/rtmo-l_16xb16-600e_coco-640x640-516a421f_20231211.pth
 #config: models/rtmpose-l_8xb256-420e_aic-coco-384x288.py
 #checkpoint: models/rtmpose-l_simcc-aic-coco_pt-aic-coco_420e-384x288-97d6cb0f_20230228.pth
-config: models/rtmpose-x_8xb256-700e_body8-halpe26-384x288.py
-checkpoint: models/rtmpose-x_simcc-body7_pt-body7-halpe26_700e-384x288-7fb6e239_20230606.pth
+#config: models/rtmpose-x_8xb256-700e_body8-halpe26-384x288.py
+#checkpoint: models/rtmpose-x_simcc-body7_pt-body7-halpe26_700e-384x288-7fb6e239_20230606.pth
+#config: models/rtmo-l_16xb16-600e_body7-640x640.py
+#checkpoint: models/rtmo-l_16xb16-600e_body7-640x640-b37118ce_20231211.pth
+pose_config: models/rtmpose-l_8xb256-420e_body8-384x288.py
+pose_checkpoint: models/rtmpose-l_simcc-body7_pt-body7_420e-384x288-3f5a1437_20230504.pth
 
-# Visualize options
-
-show-kpt-idx: false
-skeleton-style: mmpose
-kpt-thr: 0.3
-radius: 4
-thickness: 2
-alpha: 0.8
+#det_config: models/rtmdet_l_8xb32-300e_coco.py
+#det_checkpoint: models/rtmdet_l_8xb32-300e_coco_20220719_112030-5a0be7c4.pth
+#det_config: models/rtmdet_m_8xb32-300e_coco.py
+#det_checkpoint: models/rtmdet_m_8xb32-300e_coco_20220719_112220-229f527c.pth
+det_config: models/rtmdet_tiny_8xb32-300e_coco.py
+det_checkpoint: models/rtmdet_tiny_8xb32-300e_coco_20220902_112414-78e30dcc.pth
