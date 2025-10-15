@@ -14,6 +14,8 @@ parser.add_argument('--model', type=str, default='yolo11s-pose.pt', help='Path t
 parser.add_argument('input', type=Path, help='Path to the input image or video file')
 parser.add_argument('output', type=Path, help='Path to save the output results')
 parser.add_argument('--no-blur', action='store_true', help='Disable blurring effect')
+parser.add_argument('-s', '--skip', type=int, default=0, help='Skip frames')
+parser.add_argument('-n', '--nframes', type=int, default=0, help='Number of frames to process')
 args = parser.parse_args()
 
 model = YOLO(args.model)
@@ -44,16 +46,29 @@ elif args.input.suffix.lower() in [".mp4", ".mov", ".avi", ".mkv"]:
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(str(args.output), fourcc, fps, (width, height))
 
+    if args.nframes > 0:
+        total_frames = args.nframes
+
+    for _ in tqdm(range(args.skip), desc="Skipping frames"):
+        ret, frame = cap.read()
+
     progress = tqdm(total=total_frames)
     times = []
+    nframes = 0
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
 
-        progress.update(1)
+        progress.update()
+
         start = time.time()
-        result = model.predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), verbose=False, device=DEVICE)[0]
+        result = model.predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
+                               verbose=False,
+                               conf=0.1,
+                               iou=0.7,
+                               agnostic_nms=True,
+                               device=DEVICE)[0]
         end = time.time()
         #print(f"Inference time: {end - start:.6f} seconds")
         times.append(end - start)
@@ -67,6 +82,10 @@ elif args.input.suffix.lower() in [".mp4", ".mov", ".avi", ".mkv"]:
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
         out.write(img)
+
+        nframes += 1
+        if nframes >= total_frames:
+            break
 
     cap.release()
     out.release()
