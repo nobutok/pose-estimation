@@ -21,7 +21,7 @@ DEVICE = os.environ.get("TEST_DEVICE", "cuda:0")
 
 parser = ArgumentParser()
 parser.add_argument('input', help='Image file')
-parser.add_argument('output', help='Path to output file')
+parser.add_argument('output', nargs='?', help='Path to output file')
 parser.add_argument('--no-blur', action='store_true', help='Disable blurring effect')
 parser.add_argument('-s', '--skip', type=int, default=0, help='Skip frames')
 parser.add_argument('-n', '--nframes', type=int, default=0, help='Number of frames to process')
@@ -66,7 +66,7 @@ class TopdownModel:
     def init_visualizer(self,
                         radius: int = 3,
                         alpha: float = 0.8,
-                        thickness: int = 1,
+                        thickness: int = 2,
                         skeleton_style: str = 'mmpose'):
         self.pose_estimator.cfg.visualizer.radius = radius
         self.pose_estimator.cfg.visualizer.alpha = alpha
@@ -107,26 +107,33 @@ def inference_image(model: TopdownModel, inputfile, outputfile):
     if not args.no_blur:
         img = cv2.blur(img, BLUR_SIZE)
 
-    vis_frame = model.draw_lines(img, results)
-    cv2.imwrite(outputfile, cv2.cvtColor(vis_frame, cv2.COLOR_RGB2BGR))
+    if outputfile is not None:
+        vis_frame = model.draw_lines(img, results)
+        cv2.imwrite(outputfile, cv2.cvtColor(vis_frame, cv2.COLOR_RGB2BGR))
     print(f'the output image has been saved at {outputfile}')
 
 def inference_video(model: TopdownModel, inputfile, outputfile, **kwargs):
     cap = cv2.VideoCapture(inputfile)
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-    out = cv2.VideoWriter(outputfile, fourcc, fps, (width, height))
+    if outputfile is not None:
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        out = cv2.VideoWriter(outputfile, fourcc, fps, (width, height))
+    else:
+        total_frames = 0
+        out = None
 
     if args.nframes > 0:
         total_frames = args.nframes
 
-    for _ in tqdm(range(args.skip), desc="Skipping frames"):
-        ret, frame = cap.read()
+    if args.skip > 0:
+        for _ in tqdm(range(args.skip), desc="Skipping frames"):
+            ret, frame = cap.read()
 
-    progress = tqdm(total=total_frames)
+    if total_frames > 0:
+        progress = tqdm(total=total_frames)
     times = []
     nframes = 0
     while cap.isOpened():
@@ -134,7 +141,8 @@ def inference_video(model: TopdownModel, inputfile, outputfile, **kwargs):
         if not ret:
             break
 
-        progress.update()
+        if total_frames > 0:
+            progress.update()
 
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         start = time.time()
@@ -148,17 +156,19 @@ def inference_video(model: TopdownModel, inputfile, outputfile, **kwargs):
             img = cv2.blur(img, BLUR_SIZE)
         vis_frame = model.draw_lines(img, results)
         frame = cv2.cvtColor(vis_frame, cv2.COLOR_RGB2BGR)
-        out.write(frame)
-        cv2.imshow(outputfile, frame)
+        if out is not None:
+            out.write(frame)
+        cv2.imshow("MMPose", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
         nframes += 1
-        if nframes >= total_frames:
+        if total_frames > 0 and nframes >= total_frames:
             break
 
     cap.release()
-    out.release()
+    if out is not None:
+        out.release()
     cv2.destroyAllWindows()
 
     print(f'Average inference time: {sum(times[1:])/len(times[1:]):.6f} seconds')
@@ -170,5 +180,5 @@ if __name__ == '__main__':
 
     if args.input.endswith((".jpg", ".jpeg", ".png", ".bmp")):
         inference_image(model, args.input, args.output)
-    elif args.input.endswith((".mp4", ".mov", ".avi", ".mkv")):
+    elif args.input.endswith((".mp4", ".mov", ".avi", ".mkv")) or args.input.startswith("rtsp://"):
         inference_video(model, args.input, args.output)
